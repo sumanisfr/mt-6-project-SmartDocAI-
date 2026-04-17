@@ -1,6 +1,13 @@
 import re
+import hashlib
 from typing import List, Dict
 from app.config import settings
+
+
+def generate_id(text: str, path: str, idx: int) -> str:
+    # deterministic + unique across docs
+    raw = f"{path}-{idx}-{text}"
+    return hashlib.md5(raw.encode()).hexdigest()
 
 
 def chunk_document(doc: Dict) -> List[Dict]:
@@ -11,6 +18,7 @@ def chunk_document(doc: Dict) -> List[Dict]:
 
     chunks = []
     current_heading = "root"
+    chunk_counter = 0
 
     for part in sections:
 
@@ -26,12 +34,18 @@ def chunk_document(doc: Dict) -> List[Dict]:
                 words[i:i + settings.CHUNK_SIZE]
             )
 
+            chunk_id = generate_id(chunk_text, doc["path"], chunk_counter)
+
             chunks.append({
+                "id": chunk_id,                
                 "text": chunk_text,
                 "heading": current_heading,
                 "source": doc["filename"],
                 "path": doc["path"],
-                "type": doc["type"]
+                "url": doc["path"],           
+                "type": doc.get("type", "markdown")
             })
+
+            chunk_counter += 1
 
     return chunks
