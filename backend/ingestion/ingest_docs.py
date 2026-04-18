@@ -12,26 +12,18 @@ def hash_text(text: str):
     return hashlib.md5(text.encode()).hexdigest()
 
 
-def ingest():
+def ingest(base_path: str, project_id: str):
 
-    docs = load_documents()
+    docs = load_documents(base_path)
 
     all_chunks = []
-    seen_hashes = set()
 
     for doc in docs:
 
         chunks = chunk_document(doc)
 
         for c in chunks:
-
-            h = hash_text(c["text"])
-
-            if h in seen_hashes:
-                continue
-
-            seen_hashes.add(h)
-            c["id"] = h
+            c["project_id"] = project_id
             all_chunks.append(c)
 
     texts = [c["text"] for c in all_chunks]
